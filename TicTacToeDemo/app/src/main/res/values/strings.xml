@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">TicTacToeDemo</string>
+    <string name="times_to_win_string">Times to Win: </string>
+    <string name="start_string">START GAME!</string>
+    <string name="leave_string">LEAVE GAME</string>
+</resources>
