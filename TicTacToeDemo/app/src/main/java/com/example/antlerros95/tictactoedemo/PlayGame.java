@@ -14,7 +14,7 @@ import android.widget.TextView;
  */
 
 public class PlayGame extends Activity {
-    private int times_left;
+    private int times;
     private Button b[][];
     private int c[][];
     private static boolean Turn = true;
@@ -45,10 +45,10 @@ public class PlayGame extends Activity {
                     c[x][y] = 2;
                 }
                 if(checkboard()){
-                    times_left = times_left -1;
                     score1.setText(Integer.toString(player1_score));
                     score2.setText(Integer.toString(player2_score));
-                    if(times_left==0){
+
+                    if(times==score1 || times==score2{
                         switch_to_start_menu();
                     }
                     else setBoard();
@@ -63,7 +63,7 @@ public class PlayGame extends Activity {
         setContentView(R.layout.activity_play_game);
 
         Bundle bundle = this.getIntent().getExtras();
-        times_left = bundle.getInt("times");
+        times = bundle.getInt("times");
 
 
         setBoard();
@@ -131,8 +131,8 @@ public class PlayGame extends Activity {
             gameOver = true;
         } else {
             boolean empty = false;
-            for(int i=1; i<=3; i++) {
-                for(int j=1; j<=3; j++) {
+            for(int i=0; i<=2; i++) {
+                for(int j=0; j<=2; j++) {
                     if(c[i][j]==0) {
                         empty = true;
                         break;
