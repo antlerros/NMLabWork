@@ -8,7 +8,7 @@
     android:orientation="vertical"
     android:padding="10dp"
     android:background="@color/background"
-    tools:context="com.example.antlerros95.tictactoedemo.StartGame">
+    tools:context="com.example.antlerros95.tictactoedemo.PlayGame">
 
     <TextView
         android:layout_width="match_parent"
@@ -64,6 +64,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@color/player_background"
                 android:orientation="horizontal">
 
                 <TextView

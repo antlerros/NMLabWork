@@ -64,14 +64,14 @@ public class StartGame extends Activity {
 
     private void switchToPlayGame() {
         Intent _intent = new Intent();
-//        _intent.setClass(StartGame.this, PlayGame.class);
+        _intent.setClass(StartGame.this, PlayGame.class);
 
-//        Bundle _bundle = new Bundle();
-//        _bundle.putInt("times", times);
-//
-//        _intent.putExtras(_bundle);
+        Bundle _bundle = new Bundle();
+        _bundle.putInt("times", times);
 
-//        startActivity(_intent);
+        _intent.putExtras(_bundle);
+
+        startActivity(_intent);
 
     }
 
