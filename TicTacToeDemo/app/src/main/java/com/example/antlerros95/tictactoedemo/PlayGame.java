@@ -48,7 +48,7 @@ public class PlayGame extends Activity {
                     score1.setText(Integer.toString(player1_score));
                     score2.setText(Integer.toString(player2_score));
 
-                    if(times==score1 || times==score2{
+                    if(times==player1_score || times==player2_score){
                         switch_to_start_menu();
                     }
                     else setBoard();
