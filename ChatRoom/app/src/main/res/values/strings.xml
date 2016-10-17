@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">ChatRoom</string>
+    <string name="userIDText">User ID</string>
+    <string name="passwordText">Password</string>
+    <string name="loginText">LOGIN</string>
+
 </resources>
