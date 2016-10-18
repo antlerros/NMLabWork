@@ -1,5 +1,6 @@
 package com.example.antlerros95.chatroom;
 
+import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.ListView;
 
@@ -10,8 +11,15 @@ import java.util.ArrayList;
  */
 
 public class Idle extends AppCompatActivity {
-    private ArrayList<User> userList = new ArrayList<User>();
-    private ListView userListView = (ListView)findViewById(R.id.userListView);
+    private ArrayList<User> userList;
+    private ListView userListView;
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_idle);
+        userList = new ArrayList<User>();
+        userListView = (ListView)findViewById(R.id.userListView);
+    }
 
 }

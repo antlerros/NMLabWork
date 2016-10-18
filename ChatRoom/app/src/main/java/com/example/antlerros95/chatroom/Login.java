@@ -1,10 +1,18 @@
 package com.example.antlerros95.chatroom;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.os.SystemClock;
+import android.os.Vibrator;
+import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -28,8 +36,6 @@ public class Login extends AppCompatActivity {
     String userIDText;
     String userPasswordText;
     JSONObject info = new JSONObject();
-    String response;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,23 +50,12 @@ public class Login extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if(getInfo()) {
-                    SendInfoTask sendRequest = new SendInfoTask();
+                    SendInfoTask sendRequest = new SendInfoTask(getBaseContext());
                     sendRequest.execute(info);
-                } else {
-                    return;
-                }
-                if(response.equals("Right")) {
-                    Intent _intent = new Intent();
-                    _intent.setClass(Login.this, Idle.class);
-                    startActivity(_intent);
-                } else if (response.equals("New")) {
-                    Toast.makeText(getBaseContext(),
-                            "Create New ID!",
-                            Toast.LENGTH_SHORT).show();
-                } else if (response.equals("Wrong")) {
-                    Toast.makeText(getBaseContext(),
-                            "ID Not Found!",
-                            Toast.LENGTH_SHORT).show();
+                    if (view != null) {
+                        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                    }
                 }
             }
         });
@@ -91,34 +86,38 @@ public class Login extends AppCompatActivity {
     }
 
     private class SendInfoTask extends AsyncTask<JSONObject, Void, String> {
+        private Context mContext;
+
+        public SendInfoTask(Context context) {
+            mContext = context;
+        }
+
         @Override
         protected String doInBackground(JSONObject... params) {
-            String url = "http://140.112.18.193/login";
+            String url = "http://140.112.18.193:4000/login/";
             URL object;
             HttpURLConnection con;
-            int HttpResult;
-            try {
-                object = new URL(url);
-            } catch (MalformedURLException e) {
-                Toast.makeText(getBaseContext(),
-                        "Invalid URL!",
-                        Toast.LENGTH_SHORT).show();
-                return null;
+            ConnectivityManager ConnMgr = (ConnectivityManager)
+                    getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = ConnMgr.getActiveNetworkInfo();
+            if (networkInfo == null || !networkInfo.isConnected()) {
+                System.out.println("Device no Connection!");
             }
             try {
+                object = new URL(url);
                 con = (HttpURLConnection) object.openConnection();
                 con.setDoOutput(true);
                 con.setDoInput(true);
                 con.setRequestProperty("Content-Type", "application/json");
-                con.setRequestProperty("Accept", "application/json");
                 con.setRequestMethod("POST");
+                con.connect();
                 for (JSONObject item : params) {
-                    OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream());
+                    OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream(), "UTF-8");
                     wr.write(item.toString());
                     wr.flush();
+                    wr.close();
                 }
-                HttpResult = con.getResponseCode();
-                if (HttpResult == HttpURLConnection.HTTP_OK) {
+                if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
                     try {
                         BufferedReader input = new BufferedReader(
                                 new InputStreamReader(con.getInputStream()));
@@ -132,17 +131,42 @@ public class Login extends AppCompatActivity {
                     } catch (IOException e) {
                         System.out.println("no response!\n");
                     }
+                } else {
+                    System.out.println(con.getResponseMessage());
+                    System.out.println("\nconnection failed\n");
                 }
+            } catch (MalformedURLException e) {
+                System.out.println("Invalid URL!");
+                return null;
             } catch (IOException e) {
-                Toast.makeText(getBaseContext(),
-                        "Fail to connect!",
-                        Toast.LENGTH_SHORT).show();
+                System.out.println("Fail to connect!");
             }
             return null;
         }
         @Override
         protected void onPostExecute(String result) {
-            response = result;
+            if (result == null) {
+                System.out.println("response = null");
+                return;
+            }
+            if (result.equals("Wrong")) {
+                Vibrator v = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
+                // Vibrate for 500 milliseconds
+                v.vibrate(500);
+                Toast.makeText(mContext,
+                        "ID Not Found!",
+                        Toast.LENGTH_SHORT).show();
+            } else {
+                if (result.equals("New")) {
+                    Toast.makeText(mContext,
+                            "Create New ID!",
+                            Toast.LENGTH_SHORT).show();
+                }
+                Intent _intent = new Intent();
+                _intent.setClass(Login.this, Idle.class);
+                startActivity(_intent);
+            }
         }
     }
+
 }
