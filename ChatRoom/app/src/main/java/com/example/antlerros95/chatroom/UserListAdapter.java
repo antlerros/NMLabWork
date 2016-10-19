@@ -30,6 +30,8 @@ public class UserListAdapter extends ArrayAdapter<User> {
 
     }
 
+
+
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder = null;
         User user = getItem(position);

@@ -50,7 +50,10 @@ public class Login extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if(getInfo()) {
-                    SendInfoTask sendRequest = new SendInfoTask(getBaseContext());
+                    Bundle b = new Bundle();
+                    b.putString("userID", userIDText);
+                    b.putString("password", userPasswordText);
+                    SendInfoTask sendRequest = new SendInfoTask(getBaseContext(), b);
                     sendRequest.execute(info);
                     if (view != null) {
                         InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -87,8 +90,10 @@ public class Login extends AppCompatActivity {
 
     private class SendInfoTask extends AsyncTask<JSONObject, Void, String> {
         private Context mContext;
+        private Bundle mBundle;
 
-        public SendInfoTask(Context context) {
+        public SendInfoTask(Context context, Bundle bundle) {
+            mBundle = bundle;
             mContext = context;
         }
 
@@ -164,7 +169,9 @@ public class Login extends AppCompatActivity {
                 }
                 Intent _intent = new Intent();
                 _intent.setClass(Login.this, Idle.class);
+                _intent.putExtras(mBundle);
                 startActivity(_intent);
+
             }
         }
     }
