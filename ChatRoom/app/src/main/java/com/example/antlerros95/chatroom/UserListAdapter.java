@@ -27,11 +27,10 @@ public class UserListAdapter extends ArrayAdapter<User> {
         ImageView userPortraitView;
         TextView userIDView;
         TextView userStatusView;
-
     }
 
 
-
+    @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder = null;
         User user = getItem(position);

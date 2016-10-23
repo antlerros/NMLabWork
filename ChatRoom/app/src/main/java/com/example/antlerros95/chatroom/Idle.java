@@ -1,16 +1,20 @@
 package com.example.antlerros95.chatroom;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.util.JsonReader;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -19,10 +23,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by antlerros95 on 15/10/2016.
@@ -32,10 +39,10 @@ public class Idle extends AppCompatActivity {
     private ArrayList<User> userList;
     private ListView userListView;
     private UserListAdapter adapter;
-    private boolean wait;
     private String mUserID;
-    private String mPassword;
-    private String returnInformation;
+    private String mFriendID = "";
+    final Handler handler = new Handler();
+    private boolean mExit = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,19 +58,24 @@ public class Idle extends AppCompatActivity {
         userListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
+                User friend = (User) userListView.getItemAtPosition(position);
+                mFriendID = friend.getId();
             }
         });
 
         mUserID = bundle.getString("userID");
-        mPassword = bundle.getString("password");
 
-        wait = true;
-
-        LoadContactToServer loader = new LoadContactToServer(getBaseContext());
-        loader.execute(createInfoJSON(false, ""));
-
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                requestHttp(mExit, mFriendID);
+                handler.postDelayed(this, 2000);
+            }
+        };
+        handler.postDelayed(runnable, 2000);
     }
+
+
 
     protected JSONObject createInfoJSON(boolean exit, String callID) {
         JSONObject accountInfo = new JSONObject();
@@ -77,10 +89,37 @@ public class Idle extends AppCompatActivity {
         return accountInfo;
     }
 
+    protected void requestHttp(boolean exit, String callID) {
+        final Handler handler = new Handler();
+        LoadContactToServer loader = new LoadContactToServer(getBaseContext());
+        if (!exit) {
+            if (callID.equals("")) {
+                loader.execute(createInfoJSON(false, ""));
+            } else {
+                loader.execute(createInfoJSON(false, callID));
+            }
+        } else {
+            loader.execute(createInfoJSON(true, ""));
+        }
+    }
+    protected void jumpToChat(String friendID) {
+        if (friendID == null) {
+            return;
+        }
+        Intent _intent = new Intent();
+        _intent.setClass(Idle.this, Chat.class);
+        _intent.setClass(Idle.this, Chat.class);
+        Bundle bundle = new Bundle();
+        bundle.putString("friendID", friendID);
+        _intent.putExtras(bundle);
+        startActivity(_intent);
+    }
+
+
     private class LoadContactToServer extends AsyncTask<JSONObject, Void, String> {
         private Context mContext;
 
-        public  LoadContactToServer(Context context) {
+        public LoadContactToServer(Context context) {
             mContext = context;
         }
 
@@ -93,7 +132,7 @@ public class Idle extends AppCompatActivity {
                     getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo networkInfo = ConnMgr.getActiveNetworkInfo();
             if (networkInfo == null || !networkInfo.isConnected()) {
-                System.out.println("Device no Connection!");
+                System.out.println("Device no Connection!\n");
             }
             try {
                 object = new URL(url);
@@ -125,7 +164,7 @@ public class Idle extends AppCompatActivity {
                     }
                 } else {
                     System.out.println(con.getResponseMessage());
-                    System.out.println("\nconnection failed\n");
+                    System.out.println("connection failed\n");
                 }
             } catch (MalformedURLException e) {
                 System.out.println("Invalid URL!");
@@ -139,10 +178,46 @@ public class Idle extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
             if (result  == null) {
+                System.out.println("no result!\n");
                 return;
             }
-            returnInformation = result;
-            System.out.println(returnInformation);
+            JSONObject returnInformation;
+            boolean connection = true;
+            boolean chat = false;
+            JSONArray jArray;
+            String friendID;
+            try {
+                returnInformation = new JSONObject(result);
+                connection = (boolean) returnInformation.get("Connection");
+                chat = (boolean) returnInformation.get("Chatting");
+                jArray = (JSONArray) returnInformation.get("OnlineList");
+                friendID = (String) returnInformation.get("Friend_ID");
+                if (chat){
+                    System.out.println("chatting mode...\n");
+                    jumpToChat(friendID);
+                } else if (connection) {
+                    System.out.println("waiting mode...\n");
+                    if (jArray == null) {
+                        System.out.println("no Online List\n");
+                        return;
+                    }
+                    System.out.print(jArray);
+                    userList.clear();
+                    for (int i = 0; i < jArray.length(); i++){
+                        String name = jArray.get(i).toString();
+                        System.out.println(name + "\n");
+                        userList.add(new User(name,
+                                "online"));
+                    }
+                    adapter.notifyDataSetChanged();
+
+                }
+            } catch (JSONException e) {
+                System.out.println("unable to catch response\n");
+            }
+
         }
+
+
     }
 }
